@@ -20,7 +20,12 @@ const TARGET_FILE: &'static str = "../app.log";
 // so here i basically get a req from the front and write the file
 #[tauri::command]
 fn accept_person_data(person_json_string: String, logger: State<PersonLoggerWrapper>) -> String{
-    logger.logger.lock().unwrap().append(vec![person_json_string]);
+    match logger.logger.lock().unwrap().append(vec![person_json_string]) {
+        Ok(()) => (),
+        Err(e) => {
+            return format!("An error occured! Contact the devs with the following:\n-------ERRINFO-------\n\t- {e}\n-----ENDERRINFO-----")
+        }
+    };
     format!("{}", logger.logger.lock().unwrap())
 }
 
@@ -36,12 +41,21 @@ fn flush_logger(logger: State<PersonLoggerWrapper>) -> String {
         }
     }
 }
+
+#[tauri::command]
+fn json(logger: State<PersonLoggerWrapper>) -> String {
+    println!("json() called!");
+    match logger.logger.lock().unwrap().json() {
+        Some(s) => return s,
+        None => return "nothin to show here... the list is empty mate".to_owned(),
+    };
+}
 // TODO complete writing this one (like actually write to the file!()
 // using the OpenOptions struct)
 fn main() {
     tauri::Builder::default()
         .manage(PersonLoggerWrapper {logger: Mutex::new(PersonLogger::new_empty(TARGET_FILE.to_owned()))})
-        .invoke_handler(tauri::generate_handler![accept_person_data, flush_logger])
+        .invoke_handler(tauri::generate_handler![accept_person_data, flush_logger, json])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

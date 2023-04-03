@@ -85,25 +85,36 @@ impl std::fmt::Display for PersonLogger {
 }
 impl PersonLogger {
      /// takes a json string interpretation and a target file path.
-     /// returns a PersonLogger instance
+     /// returns a Result<PersonLogger, serde_json::Error>
      /// Oh and btw, this struct is actually printable, i implemented
      /// std::fmt::Display on it! les goooo
-     pub fn from_tuple(persons_vec_json: Vec<String>, target_file: String) -> Self {
-        let persons: Vec<Person> = persons_vec_json.iter().map(
-            |p| -> Person {
-                match serde_json::from_str(p) {
-                    Ok(p) => p,
-                    Err(e) => {
-                        println!("Error during parsing: {e}");
-                        Person::default()
-                    }
+     pub fn from_json_vec(persons_vec_json: Vec<String>, target_file: String) -> Result<Self, serde_json::Error> {
+        // let persons: Vec<Person> = persons_vec_json.iter().map(
+        //     |p| -> Person {
+        //         match serde_json::from_str(p) {
+        //             Ok(p) => p,
+        //             Err(e) => {
+        //                 println!("Error during parsing: {e}");
+        //                 Person::default()
+        //             }
+        //         }
+        //     }
+        // ).collect();
+
+        let mut persons: Vec<Person> = vec![];
+        for person_json_string in persons_vec_json {
+            match serde_json::from_str::<Person>(person_json_string.as_str()) {
+                Ok(p) => persons.push(p),
+                Err(e) => {
+                    println!("An error occured!\n{e}");
+                    return Err(e);
                 }
             }
-        ).collect();
-        Self {
+        }
+        Ok(Self {
             persons: Some(persons),
             target_file,
-        }
+        })
      }
      ///```markdown
      ///PersonLogger::new_empty()
@@ -123,22 +134,50 @@ impl PersonLogger {
      /// if Option<Vec<Person>> is None, replaces it with persons_given_array
      /// if Option<Vec<Person>> is Some(n), append given to that
      /// ```
-     pub fn append(&mut self, persons_vec_json: Vec<String>) {
-        let mut persons_given_array: Vec<Person> = persons_vec_json.iter().map(
-            |p| -> Person {
-                match serde_json::from_str(p) {
-                    Ok(p) => p,
-                    Err(e) => {
-                        println!("Error during parsing: {e}");
-                        Person::default()
-                    }
+     pub fn append(&mut self, persons_vec_json: Vec<String>) -> Result<(), serde_json::Error>{
+        // let mut persons_given_array: Vec<Person> = persons_vec_json.iter().map(
+        //     |p| -> Person {
+        //         match serde_json::from_str(p) {
+        //             Ok(p) => p,
+        //             Err(e) => {
+        //                 println!("Error during parsing: {e}");
+        //                 Person::default()
+        //             }
+        //         }
+        //     }
+        // ).collect();
+// eh, what a beautiful peice of functional code... too bad it's not what i need :(
+        let mut persons_given_array: Vec<Person> = vec![];
+        for person_json_string in persons_vec_json {
+            match serde_json::from_str::<Person>(person_json_string.as_str()) {
+                Ok(p) => persons_given_array.push(p),
+                Err(e) => {
+                    println!("An error occured!\n{e}");
+                    return Err(e);
                 }
             }
-        ).collect();
+        }
         if let Some(persons) = &mut self.persons {
             persons.append(&mut persons_given_array);
         } else {
             self.persons = Some(persons_given_array);
+        }
+        Ok(())
+     }
+     ///```markdown
+     ///# PersonLogger::json()
+     ///
+     ///returns a json string of every Person in PersonLogger::persons() array
+     /// 
+     ///```
+     ///EXPERIMENTAL RN
+     pub fn json(&self) -> Option<String> {
+        match &self.persons {
+            Some(vec) => {
+                let return_json_string: String = format!("[{}]", vec.iter().map(|p| serde_json::to_string(p).unwrap()).collect::<String>().replace("}{", "},{"));
+                Some(return_json_string)
+            },
+            None => None,
         }
      }
      /// ```markdown

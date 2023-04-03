@@ -5,7 +5,7 @@ import { invoke } from "@tauri-apps/api/tauri";
  *
  * @default has a default implementation, accessed by `let x = new Person()`
  *
- * @params username, age, timestamp, comment
+ * @param username, age, timestamp, comment
  */
 class Person {
   username: string = "John Doe";
@@ -36,6 +36,9 @@ class Person {
     let { username, age, timestamp, comment } = this;
     return [username, age, timestamp, comment];
   }
+  return_json(this: Person): string {
+    return JSON.stringify(this);
+  }
 }
 // ----------------------------------------------------------------------------------
 // setting up event func
@@ -48,19 +51,19 @@ class Person {
  * @param person_array: array of objects of class Person
  * @returns nothing (for now)
  */
+var PERSON_ARRAY: Person[] = [];
 const send_person_data = async function (
   person_array: Person[],
-  display_elem: HTMLElement | null,
+  display_elem: HTMLElement,
 ) {
   // for each tuple instance call the backend
   for (const person of person_array) {
-    const person_json_string = JSON.stringify(person);
+    const person_json_string = person.return_json();
     await invoke("accept_person_data", {
       personJsonString: person_json_string,
     })
       .then((res) => {
-        // @ts-ignore
-        display_elem.innerText = res;
+        display_elem.innerText = <string> res;
       }, (e) => {
         display_elem.innerText = e;
       });
@@ -76,39 +79,48 @@ const send_person_data = async function (
  * @param display_elem: is there to display the answer of the backend
  * @returns nothing (no promises?!)
  */
-const flush_logger = async function (display_elem: HTMLElement | null) {
-  await invoke("flush_logger")
+const flush_logger = async function (display_elem: HTMLElement) {
+  await invoke("json")
     .then((res) => {
-      // @ts-ignore
-      display_elem.innerText = res;
+      display_elem.innerText = <string> res;
     }, (e) => {
       display_elem.innerText = e;
     });
 };
+const json = async function () {
+  await invoke("json")
+    .then((res) => {
+      for (const person_json of JSON.parse(<string> res)) {
+        PERSON_ARRAY.push(person_json);
+      }
+      console.dir(PERSON_ARRAY);
+    });
+};
 window.addEventListener("DOMContentLoaded", () => {
   // setting up vars
-  let form_elem: HTMLElement | null;
-  let header_elem: HTMLElement | null;
+  let form_elem: HTMLFormElement;
+  let header_elem: HTMLElement;
 
-  form_elem = document.querySelector("#form_elem");
-  header_elem = document.querySelector("#header");
+  form_elem = document.querySelector("#form_elem")!;
+  header_elem = document.querySelector("#header")!;
   // event listener on main form
   form_elem?.addEventListener("submit", (event: Event) => {
     // prevent the default reload action, build the Person from form selectors
     event.preventDefault();
-
+    form_elem.getElementsByTagName;
     const person: Person = new Person(
-      form_elem[0].value,
-      parseInt(form_elem[1].value),
+      (<HTMLInputElement> form_elem[0]).value,
+      parseInt((<HTMLInputElement> form_elem[1]).value),
       new Date().toLocaleString(),
-      form_elem[2].value,
+      (<HTMLInputElement> form_elem[2]).value,
     );
     // checking what button was pressed
-    // @ts-ignore
-    if (event.submitter.id === "add_person") {
+    if ((<SubmitEvent> event).submitter!.id === "add_person") {
       // send person to backend
       send_person_data([person], header_elem);
-    } else {
+    } else if ((<SubmitEvent> event).submitter!.id === "get_json") {
+      json();
+    } else if ((<SubmitEvent> event).submitter!.id === "write_to_disk") {
       // flush the logger to disk
       flush_logger(header_elem);
     }
