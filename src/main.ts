@@ -5,22 +5,19 @@ import { invoke } from "@tauri-apps/api/tauri";
  *
  * @default has a default implementation, accessed by `let x = new Person()`
  *
- * @param username, age, timestamp, comment
+ * @param username, age, comment
  */
 class Person {
   username: string = "John Doe";
   age: number = 34;
-  timestamp: string = new Date().toLocaleString();
   comment: string = "amen";
   constructor(
     username: string = "John Doe",
     age: number = 34,
-    timestamp: string = new Date().toLocaleString(),
     comment: string = "amen",
   ) {
     this.username = username;
     this.age = age;
-    this.timestamp = timestamp;
     this.comment = comment;
   }
   /** Converts a Person instance to a tuple of (Username, Age, Timestamp, Comment)
@@ -32,9 +29,9 @@ class Person {
    */
   return_person_tuple(
     this: Person,
-  ): [string, number, string, string] {
-    let { username, age, timestamp, comment } = this;
-    return [username, age, timestamp, comment];
+  ): [string, number, string] {
+    let { username, age, comment } = this;
+    return [username, age, comment];
   }
   return_json(this: Person): string {
     return JSON.stringify(this);
@@ -61,6 +58,7 @@ const send_person_data = async function (
     const person_json_string = person.return_json();
     await invoke("accept_person_data", {
       personJsonString: person_json_string,
+      timestamp: new Date().toLocaleString(),
     })
       .then((res) => {
         display_elem.innerText = <string> res;
@@ -80,7 +78,7 @@ const send_person_data = async function (
  * @returns nothing (no promises?!)
  */
 const flush_logger = async function (display_elem: HTMLElement) {
-  await invoke("json")
+  await invoke("flush_logger")
     .then((res) => {
       display_elem.innerText = <string> res;
     }, (e) => {
@@ -111,7 +109,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const person: Person = new Person(
       (<HTMLInputElement> form_elem[0]).value,
       parseInt((<HTMLInputElement> form_elem[1]).value),
-      new Date().toLocaleString(),
       (<HTMLInputElement> form_elem[2]).value,
     );
     // checking what button was pressed
