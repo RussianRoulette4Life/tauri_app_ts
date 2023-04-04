@@ -126,3 +126,5 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+let json_test = '[ {"username": "yessir"}, {"username": "yessir"}, {"username": "yessir"} ]'
+console.dir(JSON.parse(json_test));
