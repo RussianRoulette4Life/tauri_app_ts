@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-/// basically a person type. Note: the From<T> trait is implemented
-/// with a tuple of (Username(String), Age(i32), Timestamp(String), Comment(String)), IN THIS ORDER!
 use std::fs::OpenOptions;
 use std::hash::Hash;
 use std::io::{Read, Write};
 use std::time::SystemTime;
 use serde::{Serialize, Deserialize};
+
 
 ///```markdown 
 ///# A person struct
@@ -23,7 +22,7 @@ struct Person {
 #[derive(Hash, Deserialize, Serialize, PartialEq, Eq, Debug)]
 struct Metadata {
     timestamp: String,
-    id: usize,
+    id: i32,
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PersonLogger {
@@ -40,7 +39,7 @@ impl From<(String, i32, String)> for Person{
     }
 }
 impl Metadata {
-    fn new(timestamp: String, id: usize) -> Self {
+    fn new(timestamp: String, id: i32) -> Self {
         Self {
             timestamp,
             id,
@@ -123,7 +122,7 @@ impl PersonLogger {
         
         let mut persons: HashMap<Metadata, Person> = HashMap::new();
         for ( index ,person ) in persons_vec.into_iter().enumerate() {
-            persons.insert(Metadata::new(timestamps.get(index).unwrap().clone() , index), person);
+            persons.insert(Metadata::new(timestamps.get(index).unwrap().clone() , index as i32), person);
         }
         Ok(Self {
             persons: Some(persons),
@@ -143,13 +142,19 @@ impl PersonLogger {
      }
      /// ```markdown
      /// PersonLogger::append()
-     ///
-     /// Appends a given Vec<String> (of json interpretation) to PersonLogger
-     /// if Option<HashMap<...>> is None, replaces it with persons_given_hash
-     /// if Option<HashMap<...>> is Some(n), append given to that
+     /// Takes a JSON string of Person type and Metadata JSON String
+     /// Appends to or replaces (if self.persons is None) array
      /// ```
-     pub fn append(&mut self, persons_vec_json: Vec<String>, timestamps: Vec<String>) -> Result<(), serde_json::Error>{
-        let persons_vec = self.json_to_vec_person(persons_vec_json)?;
+     pub fn append(&mut self, persons_json: String, metadata: String) -> Result<(), serde_json::Error>{
+         println!("{}", metadata);
+         println!("{}", persons_json);
+         if let Some(persons) = &mut self.persons {
+            persons.insert(serde_json::from_str::<Metadata>(&metadata)?, serde_json::from_str::<Person>(&persons_json)?);
+        } else {
+            let mut new_person_map = HashMap::new();
+            new_person_map.insert(serde_json::from_str::<Metadata>(&metadata)?, serde_json::from_str::<Person>(&persons_json)?);
+            self.persons = Some(new_person_map);
+        }
         Ok(())
      }
      ///```markdown
