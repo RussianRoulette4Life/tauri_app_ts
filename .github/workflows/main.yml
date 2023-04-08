@@ -2,7 +2,7 @@ name: 'publish'
 
 on: 
   push:
-    branches: develop
+    branches: dev
 
 jobs:
   build-binaries:
