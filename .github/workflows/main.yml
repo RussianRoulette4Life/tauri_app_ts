@@ -1,6 +1,8 @@
 name: 'publish'
 
-on: [push]
+on: 
+  push:
+    branches: dev
 
 jobs:
   build-binaries:
@@ -54,9 +56,17 @@ jobs:
           name: artifacts
           path: artifacts
       - name: 'create release'
-        uses: RussianRoulette4Life/tauri_app_ts@master
+        uses: softprops/action-gh-release@master
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Yeeees.
+            - MacOs
+            - Linux
+            - Windows
           draft: false
           files: ./artifacts/**/*
+          allowUpdates: true
