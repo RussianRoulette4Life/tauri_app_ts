@@ -9,34 +9,40 @@ import { invoke } from "@tauri-apps/api/tauri";
  * ```
  */
 class Person {
-    username: string = "John Doe";
-    age: number = 34;
-    comment: string = "amen";
-    constructor(
-        username: string = "John Doe",
-        age: number = 34,
-        comment: string = "amen",
-    ) {
-        this.username = username;
-        this.age = age;
-        this.comment = comment;
-    }
-    /** Converts a Person instance to a tuple of (Username, Age, Timestamp, Comment)
-     *
-     * @remarks
-     * Basically useless for now
-     *
-     * @param this: takes in a Person instance
-     */
-    return_person_tuple(
-        this: Person,
-    ): [string, number, string] {
-        let { username, age, comment } = this;
-        return [username, age, comment];
-    }
-    return_json(this: Person): string {
-        return JSON.stringify(this);
-    }
+  name: string = "John";
+  middle_name: string = "Doe";
+  last_name: string = "Unknowable";
+  date_of_birth: string = "1.06.1970";
+  comment: string = "amen";
+  constructor(
+    name: string = "John",
+    middle_name: string = "Doe",
+    last_name: string = "Unknowable",
+    date_of_birth: string = "1.06.1970",
+    comment: string = "amen",
+  ) {
+    this.name = name;
+    this.middle_name = middle_name;
+    this.last_name = last_name;
+    this.date_of_birth = date_of_birth;
+    this.comment = comment;
+  }
+  /** Converts a Person instance to a tuple of (Username, Age, Timestamp, Comment)
+   *
+   * @remarks
+   * Basically useless for now
+   *
+   * @param this: takes in a Person instance
+   */
+  return_person_tuple(
+    this: Person,
+  ): [string, string, string, string, string] {
+    let { name, middle_name, last_name, date_of_birth, comment } = this;
+    return [name, middle_name, last_name, date_of_birth, comment];
+  }
+  return_json(this: Person): string {
+    return JSON.stringify(this);
+  }
 }
 /**```markdown
  * A mirror class to the backend for ease of use
@@ -47,18 +53,18 @@ class Person {
  * ```
  */
 class Metadata {
-    timestamp: string = new Date().toLocaleString();
-    id: number = PERSON_ARRAY.length;
-    constructor(
-        timestamp: string = new Date().toLocaleString(),
-        id: number = PERSON_ARRAY.length,
-    ) {
-        this.id = id;
-        this.timestamp = timestamp;
-    }
-    return_json(this: Metadata): string {
-        return JSON.stringify(this);
-    }
+  timestamp: string = new Date().toLocaleString();
+  id: number = ALL_PERSON_ARRAY.length;
+  constructor(
+    timestamp: string = new Date().toLocaleString(),
+    id: number = ALL_PERSON_ARRAY.length,
+  ) {
+    this.id = id;
+    this.timestamp = timestamp;
+  }
+  return_json(this: Metadata): string {
+    return JSON.stringify(this);
+  }
 }
 // ----------------------------------------------------------------------------------
 // setting up event func
@@ -71,8 +77,8 @@ class Metadata {
  * @param person_array: array of objects of class Person
  * @returns nothing (for now)
  */
-var PERSON_ARRAY: Person[] = [];
-
+var ALL_PERSON_ARRAY: Person[] = [];
+var NEW_PERSON_ARRAY: Person[] = [];
 /**
  * Invokes necessary backend code for adding a person (or multiple persons) to the logger on the backend
  *
@@ -84,25 +90,23 @@ var PERSON_ARRAY: Person[] = [];
  * @returns nothing (no promises?!)
  */
 const send_person_data = async function(
-    person_array: Person[],
-    display_elem: HTMLElement,
+  person_array: Person[],
+  display_elem: HTMLElement,
 ) {
-    // for each Person instance call the backend
-    for (const person of person_array) {
-        const person_json_string = person.return_json();
-        console.dir(person_json_string);
-        console.dir(new Metadata().return_json());
-        await invoke("accept_person_data", {
-            personJsonString: person_json_string,
-            metadata: new Metadata().return_json(),
-        })
-            .then((res) => {
-                display_elem.innerText = <string>res;
-                PERSON_ARRAY.push(person);
-            }, (e) => {
-                display_elem.innerText = e;
-            });
-    }
+  // for each Person instance call the backend
+  for (const person of person_array) {
+    const person_json_string = person.return_json();
+    await invoke("accept_person_data", {
+      personJsonString: person_json_string,
+      metadata: new Metadata().return_json(),
+    })
+      .then((res) => {
+        display_elem.innerText = <string>res;
+        ALL_PERSON_ARRAY.push(person);
+      }, (e) => {
+        display_elem.innerText = e;
+      });
+  }
 };
 /**
  * Invokes necessary backend code for flushing the logger to disk
@@ -115,12 +119,12 @@ const send_person_data = async function(
  * @returns nothing (no promises?!)
  */
 const flush_logger = async function(display_elem: HTMLElement) {
-    await invoke("flush_logger")
-        .then((res) => {
-            display_elem.innerText = <string>res;
-        }, (e) => {
-            display_elem.innerText = e;
-        });
+  await invoke("flush_logger")
+    .then((res) => {
+      display_elem.innerText = <string>res;
+    }, (e) => {
+      display_elem.innerText = e;
+    });
 };
 /**
  * Returns a JSON string of all Person instances of the PersonLogger backend struct
@@ -130,37 +134,46 @@ const flush_logger = async function(display_elem: HTMLElement) {
  * Will need a display_elem sooner
  */
 const json = async function() {
-    await invoke("json")
-        .then(() => {
-            console.dir(PERSON_ARRAY);
-        });
+  await invoke("json")
+    .then(() => {
+      console.dir(ALL_PERSON_ARRAY);
+    });
 };
 window.addEventListener("DOMContentLoaded", () => {
-    // setting up vars
-    let form_elem: HTMLFormElement;
-    let header_elem: HTMLElement;
+  // setting up vars
+  let form_elem: HTMLFormElement;
+  let header_elem: HTMLElement;
 
-    form_elem = document.querySelector("#form_elem")!;
-    header_elem = document.querySelector("#header")!;
-    // event listener on main form
-    form_elem?.addEventListener("submit", (event: Event) => {
-        // prevent the default reload action, build the Person from form selectors
-        event.preventDefault();
-        form_elem.getElementsByTagName;
-        const person: Person = new Person(
-            (<HTMLInputElement>form_elem[0]).value,
-            parseInt((<HTMLInputElement>form_elem[1]).value),
-            (<HTMLInputElement>form_elem[2]).value,
-        );
-        // checking what button was pressed
-        if ((<SubmitEvent>event).submitter!.id === "add_person") {
-            // send person to backend
-            send_person_data([person], header_elem);
-        } else if ((<SubmitEvent>event).submitter!.id === "get_json") {
-            json();
-        } else if ((<SubmitEvent>event).submitter!.id === "write_to_disk") {
-            // flush the logger to disk
-            flush_logger(header_elem);
-        }
-    });
+  form_elem = document.querySelector("#form_elem")!;
+  header_elem = document.querySelector("#header")!;
+  // event listener on main form
+  form_elem?.addEventListener("submit", (event: Event) => {
+    // prevent the default reload action, build the Person from form selectors
+    event.preventDefault();
+    form_elem.getElementsByTagName;
+    // this is ugly as hell but what has to be done will be done
+    let name_element = <HTMLInputElement>form_elem[0];
+    let middle_name_element = <HTMLInputElement>form_elem[1];
+    let last_name_element = <HTMLInputElement>form_elem[2];
+    let date_of_birth_element = <HTMLInputElement>form_elem[3];
+    let comment_element = <HTMLInputElement>form_elem[4];
+
+    const person: Person = new Person(
+      name_element.value,
+      middle_name_element.value,
+      last_name_element.value,
+      date_of_birth_element.value,
+      comment_element.value,
+    );
+    // checking what button was pressed
+    if ((<SubmitEvent>event).submitter!.id === "add_person") {
+      // send person to backend
+      send_person_data([person], header_elem);
+    } else if ((<SubmitEvent>event).submitter!.id === "get_json") {
+      json();
+    } else if ((<SubmitEvent>event).submitter!.id === "write_to_disk") {
+      // flush the logger to disk
+      flush_logger(header_elem);
+    }
+  });
 });

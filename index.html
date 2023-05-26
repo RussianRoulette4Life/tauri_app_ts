@@ -11,28 +11,44 @@
     <div class="container">
       <div class="user_input">
         <form id="form_elem" action="POST">
-          <label for="username">Field 1: username - </label>
+          <label for="name">Field 1: name - </label>
           <input
             required="true"
             type="text"
-            name="username_field"
-            placeholder="enter your name here..."
-            id="username"
+            name="name_field"
+            placeholder="enter name here..."
+            id="name"
           />
-          <label for="age">Field 2:age - </label>
+          <label for="middle_name">Field 2: middle name - </label>
           <input
             required="true"
-            type="number"
-            name="age_field"
-            placeholder="enter your age here..."
-            id="age"
+            type="text"
+            name="middle_name_field"
+            placeholder="enter middle name here..."
+            id="middle_name"
           />
-          <label for="comment">Field 3: comment - </label>
+          <label for="name">Field 3: last name - </label>
+          <input
+            required="true"
+            type="text"
+            name="last_name_field"
+            placeholder="enter last name here..."
+            id="last_name"
+          />
+          <label for="date_of_birth">Field 4: date of birth - </label>
+          <input
+            required="true"
+            type="date"
+            name="date_of_birth_field"
+            placeholder="enter date of birth dd.mm.yy here..."
+            id="date_of_birth"
+          />
+          <label for="comment">Field 5: comment - </label>
           <input
             required="true"
             type="text"
             name="comment_field"
-            placeholder="enter your comment here..."
+            placeholder="enter comment here..."
             id="comment"
           />
           <input type="submit" name="add_person" value="add person" id="add_person" />

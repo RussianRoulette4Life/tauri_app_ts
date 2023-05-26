@@ -1,7 +1,7 @@
 {
   "name": "tauri_app_ts",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,11 +10,12 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.2.0"
+    "@tauri-apps/api": "^1.2.0",
+    "sqlite": "^4.2.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.2.2",
-    "vite": "^4.0.0",
-    "typescript": "^4.8.2"
+    "typescript": "^4.8.2",
+    "vite": "^4.0.0"
   }
 }
