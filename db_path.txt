@@ -1,0 +1,1 @@
+/home/ruslan/.local/share/com.tauri.RR4L-ZQWY.PeepsLogger/databases/db.sqlite3

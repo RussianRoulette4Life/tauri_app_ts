@@ -129,7 +129,9 @@ impl PersonLogger {
      ///
      /// Creates an empty PersonLogger instance, used for state management basically
      /// ```
-     pub fn new_empty(target_file: String, target_db: String) -> Self {
+     pub fn new_empty(target_file: String) -> Self {
+        let target_db = String::new(); 
+        // std::fs::File::open("../db_path.txt").unwrap().read_to_string(&mut target_db).expect("could not open file");
         Self {
             persons: None,
             target_file,
@@ -189,6 +191,9 @@ impl PersonLogger {
      /// idea what to do otherwise)
      /// ```
      pub fn flush(&mut self) -> std::io::Result<()> {
+         if self.target_db == String::new() {
+             std::fs::File::open("../db_path.txt").unwrap().read_to_string(&mut self.target_db).expect("could not open file");
+         }
          // this if let Some() there is to avoid looping over nothin lol
          // if removed
          // then wont work lol
@@ -211,7 +216,7 @@ impl PersonLogger {
                          Ok(()) => {},
                          Err(e) => println!("{:#?}", e),
                      };
-                 sqlite3::open(self.target_db.clone()).unwrap().execute(person.to_sql(metadata));
+                 sqlite3::open(self.target_db.clone()).unwrap().execute(person.to_sql(metadata)).expect("smth wrong with the execution of sql statement");
              }
 
              self.persons = None;

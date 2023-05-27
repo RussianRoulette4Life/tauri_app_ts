@@ -67,16 +67,9 @@ class Metadata {
   }
 }
 // ----------------------------------------------------------------------------------
-// setting up event func
-/**
- * Invokes necessary backend code for adding a person to the logger
- *
- * @remarks
- * This should be used as a last function (almost always)
- *
- * @param person_array: array of objects of class Person
- * @returns nothing (for now)
- */
+// import {BaseDirectory, exists, writeFile} from "@tauri-apps/api/fs";
+//
+// await writeFile("app.txt", "huh", {dir: BaseDirectory.AppData}).then((res)=>{console.log(res)}, (err)=> {console.log(err)});
 var ALL_PERSON_ARRAY: Person[] = [];
 var NEW_PERSON_ARRAY: Person[] = [];
 /**

@@ -7,8 +7,8 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "tauri_app_ts",
-    "version": "0.0.0"
+    "productName": "PersonLogger",
+    "version": "0.1.0"
   },
   "tauri": {
     "allowlist": {
@@ -18,7 +18,8 @@
         "open": true
       },
       "fs": {
-        "all": true
+        "all": true,
+        "scope": ["$APPDATA/*"]
       }
     },
     "bundle": {
@@ -43,7 +44,7 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "tauri_app_ts",
+        "title": "PersonLogger",
         "width": 800,
         "height": 600
       }
